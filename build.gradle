@@ -1,0 +1,43 @@
+apply plugin: "java"
+
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+  maven{ url 'https://jitpack.io' }
+}
+
+dependencies {
+  // implementation files('core.jar')
+  compileOnly 'com.github.Anuken.Arc:arc-core:v96'
+  compileOnly 'com.github.Anuken.Mindustry:core:v96'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+task zip(type: Zip) {
+  org.apache.tools.ant.DirectoryScanner.removeDefaultExclude('**/.gitignore')
+  from    '.'
+  exclude '.gradle'
+  exclude 'build'
+  exclude rootProject.name + '.jar'
+  archiveName = rootProject.name + '-backup.zip'
+  destinationDir(file('/host-rootfs/sdcard'))
+}
+
+jar {
+  version = null
+  from {
+    configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
+  }
+  doLast {
+    copy {
+      from 'build/libs/' + rootProject.name + '.jar'
+      into './'
+    }
+  }
+}

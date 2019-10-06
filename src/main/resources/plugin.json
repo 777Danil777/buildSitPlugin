@@ -1,0 +1,7 @@
+{
+  "name": "BuildAndSit",
+  "author": "Hfib",
+  "main": "hfib.SurvPlugin",
+  "description": "Build security from enemies by short time and sit.",
+  "version": 1.2
+}
