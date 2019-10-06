@@ -132,7 +132,6 @@ public class SurvPlugin extends Plugin {
   private boolean canBuild;
 
   public SurvPlugin() {
-    Difficulties.put(   "TEST", new Difficulty(   "TEST",  9999, 9999,  20,  1,   5));
     Difficulties.put(   "EASY", new Difficulty(   "EASY", 20000,  120, 360, 30, 120));
     Difficulties.put(   "HARD", new Difficulty(   "HARD",  5000,   60, 120, 30,  30));
     Difficulties.put( "MEDIUM", new Difficulty( "MEDIUM", 10000,   80, 300, 30,  60));
