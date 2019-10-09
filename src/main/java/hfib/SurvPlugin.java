@@ -129,6 +129,8 @@ public class SurvPlugin extends Plugin {
   private Difficulty nextDifficulty;
   private Difficulty difficulty;
 
+  private int mix = Core.settings.getInt("smix", 100);
+  private boolean mode;
   private boolean canBuild;
 
   public SurvPlugin() {
@@ -144,13 +146,18 @@ public class SurvPlugin extends Plugin {
     Log.info("Owners of \"Build&Sit\" plugin: HFIB#7331 and ХАЛАДОС#8335\n  Beta-testers: SCHIZO#8586");
     Log.info(TAG + "Difficulty: " + difficulty.name);
     Events.on(WaveEvent.class, event -> {
+      if(!mode) return;
       if(!canBuild) state.wavetime = difficulty.wave;
     });
     Events.on(GameOverEvent.class, event -> {
-      currentLoop.cancel();
+      if(!mode) return;
+      try {
+        currentLoop.cancel();
+      } catch(Exception e) {}
     });
     Core.app.post(() -> {
       Events.on(BuildSelectEvent.class, event -> {
+        if(!mode) return;
         try {
           Block block = event.builder.buildRequest().block;
           byte rotation = event.tile.rotation();
@@ -178,6 +185,17 @@ public class SurvPlugin extends Plugin {
       });
     });
     Events.on(WorldLoadEvent.class, event -> {
+      int random = (int)(Math.random() * 100);
+      if(random >= mix) {
+        Log.info(TAG + "Default mode.");
+        Call.sendMessage(TAG + "Default mode.");
+        mode = false;
+      } else {
+        Log.info(TAG + "Build&Sit mode.");
+        Call.sendMessage(TAG + "Build&Sit mode.");
+        mode = true;
+      }
+      if(!mode) return;
       if(!state.teams.get(Team.crux).cores.isEmpty()) {
         Log.warn(TAG + "No PVP maps!");
         Core.app.post(() -> { Events.fire(new GameOverEvent(Team.crux)); });
@@ -186,7 +204,7 @@ public class SurvPlugin extends Plugin {
       difficulty = nextDifficulty;
       canBuild = true;
       currentLoop = new LoopLogic().clone();
-      Timer timer1 = new Timer("Apocalypse");
+      Timer timer1 = new Timer();
       timer1.scheduleAtFixedRate(currentLoop, 1000, difficulty.ping);
       int i = 0;
       for(Item item : content.items()) {
@@ -197,14 +215,28 @@ public class SurvPlugin extends Plugin {
           });
         }
       }
-      Log.info(TAG + "Core filled!");
+    });
+    Events.on(PlayerJoin.class, event -> {
+      String msg;
+      if(mode) {
+        msg = "Build&Sit mode [green]enabled[]\n" +
+              "Using difficulty: " + difficulty.name +
+              "\nTotal resources: ~" + difficulty.resources +
+              "\nAllowed radius for building: ~" + difficulty.radius +
+              "[]blocks\nTime for building: [cyan]" + difficulty.time / 1000 +
+              "s\nWaves every: [cyan]" + difficulty.wave / 60;
+      }
+      else {
+        msg = "Build&Sit mode [red]disabled";
+      }
+      Call.onInfoMessage(event.player.con, msg);
     });
   }
 
   public void registerServerCommands(CommandHandler handler){
-    handler.register("sdifficulty", "[type]", "Set difficulty to Build&Sit mode.", args -> {
+    handler.register("sdifficulty", "[type]", "Set difficulty to Build&Sit plugin.", args -> {
       if(args.length == 0) {
-        Log.info(TAG + "Using difficulty {0}\n  Total resources: {1}\n  Allow radius for building: {2}blocks\n"
+        Log.info(TAG + "Using difficulty {0}\n  Total resources: ~{1}\n  Allowed radius for building: ~{2}blocks\n"
           + "  Time for building: {3}s\n  Pings about time every: {4}s\n  Waves every: {5}s",
           difficulty.name, difficulty.resources, difficulty.radius,
           difficulty.time / 1000, difficulty.ping / 1000, difficulty.wave / 60
@@ -224,6 +256,39 @@ public class SurvPlugin extends Plugin {
       }
       Core.settings.put("sdifficulty", diff.name);
       Core.settings.save();
+    });
+    handler.register("smode", "[type]", "Set mode for Build&Sit plugin", args -> {
+      if(args.length == 0) {
+        Log.info(TAG + "Plugin " + (mix > 0 ? "enabled" : "disabled"));
+        return;
+      }
+      if(args[0].equals("on")) {
+        mode = true;
+        Core.settings.put("smix", 100);
+        Log.info(TAG + "Plugin enabled");
+      } else if(args[0].equals("off")) {
+        try {
+          currentLoop.cancel();
+        } catch(Exception e) {}
+        canBuild = true;
+        mode = false;
+        Core.settings.put("smix", 0);
+        Log.info(TAG + "Plugin disabled");
+      }
+    });
+    handler.register("smix", "[value]", "Set chance of enabling this module", args -> {
+      if(args.length == 0) {
+        Log.info(TAG + "Chance of build&sit survival mode now: " + mix + "%");
+        return;
+      }
+      try {
+        mix = Integer.parseInt(args[0]);
+        Core.settings.put("smix", mix);
+        Core.settings.save();
+        Log.info(TAG + "Chance of Build&Sit survival mode now: " + mix + "%");
+      } catch(NumberFormatException e) {
+        Log.err(TAG + "Invalid number");
+      }
     });
   }
 }
