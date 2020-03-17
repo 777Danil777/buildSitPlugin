@@ -11,22 +11,12 @@ repositories {
 
 dependencies {
   // implementation files('core.jar')
-  compileOnly 'com.github.Anuken.Arc:arc-core:v96'
-  compileOnly 'com.github.Anuken.Mindustry:core:v96'
+  compileOnly 'com.github.Anuken.Arc:arc-core:v104'
+  compileOnly 'com.github.Anuken.Mindustry:core:v104'
 }
 
 tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
-task zip(type: Zip) {
-  org.apache.tools.ant.DirectoryScanner.removeDefaultExclude('**/.gitignore')
-  from    '.'
-  exclude '.gradle'
-  exclude 'build'
-  exclude rootProject.name + '.jar'
-  archiveName = rootProject.name + '-backup.zip'
-  destinationDir(file('/host-rootfs/sdcard'))
+  options.encoding = 'UTF-8'
 }
 
 jar {

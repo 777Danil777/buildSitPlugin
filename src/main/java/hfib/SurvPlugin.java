@@ -8,22 +8,22 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import io.anuke.arc.*;
-import io.anuke.arc.util.*;
-import io.anuke.mindustry.*;
-import io.anuke.mindustry.content.*;
-import io.anuke.mindustry.entities.type.*;
-import io.anuke.mindustry.game.*;
-import io.anuke.mindustry.game.EventType.*;
-import io.anuke.mindustry.core.GameState;
-import io.anuke.mindustry.core.GameState.*;
-import io.anuke.mindustry.gen.*;
-import io.anuke.mindustry.type.*;
-import io.anuke.mindustry.world.*;
-import io.anuke.mindustry.net.Packets;
-import static io.anuke.mindustry.Vars.*;
+import arc.*;
+import arc.util.*;
+import mindustry.*;
+import mindustry.content.*;
+import mindustry.entities.type.*;
+import mindustry.game.*;
+import mindustry.game.EventType.*;
+import mindustry.core.GameState;
+import mindustry.core.GameState.*;
+import mindustry.gen.*;
+import mindustry.type.*;
+import mindustry.world.*;
+import mindustry.net.Packets;
+import static mindustry.Vars.*;
 
-import io.anuke.mindustry.plugin.Plugin;
+import mindustry.plugin.Plugin;
 
 public class SurvPlugin extends Plugin {
   public class Difficulty {
@@ -178,7 +178,7 @@ public class SurvPlugin extends Plugin {
             if(!canBuild) {
               Call.onKick(((Player)event.builder).con, Packets.KickReason.kick);
               Call.beginPlace(event.builder.getTeam(), event.tile.x, event.tile.y, block, rotation);
-              Call.onConstructFinish(event.tile, block, ((Player)event.builder).id, rotation, event.builder.getTeam());
+              Call.onConstructFinish(event.tile, block, ((Player)event.builder).id, rotation, event.builder.getTeam(), false);
             }
           }
         } catch(Exception e) { Log.err(e.toString()); }
@@ -211,7 +211,7 @@ public class SurvPlugin extends Plugin {
         if(item.type == ItemType.material) {
           int add = Math.round(difficulty.resources / ++i);
           Core.app.post(() -> {
-            state.teams.get(Team.sharded).cores.first().entity.items.set(item, add);
+            state.teams.cores(Team.sharded).first().items.set(item, add);
           });
         }
       }
